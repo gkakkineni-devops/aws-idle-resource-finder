@@ -1,0 +1,7 @@
+# The report bucket uses S3's own encryption (SSE-S3). A customer managed KMS key would
+# cost money each month, which isn't worth it for a bucket that only holds cost reports.
+AVD-AWS-0132
+
+# ec2:Describe* calls can't be limited to single resources, so the read-only EC2 statement
+# has to use "*". The write permissions are all scoped to one bucket folder and one log group.
+AVD-AWS-0057
