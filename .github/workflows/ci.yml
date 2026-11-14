@@ -37,3 +37,38 @@ jobs:
 
       - name: Test
         run: pytest
+
+  terraform:
+    name: Format, validate and scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Scan for misconfigurations with Trivy
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src aquasec/trivy:0.57.1 config -q --ignorefile .trivyignore --severity HIGH,CRITICAL --exit-code 1 /src
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.16.7
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive -diff terraform
+
+      - name: Initialise without a backend
+        working-directory: terraform
+        run: terraform init -backend=false -input=false
+
+      - name: Validate
+        working-directory: terraform
+        run: terraform validate
+
+      - uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.53.0
+
+      - name: Lint
+        working-directory: terraform
+        run: |
+          tflint --init
+          tflint
